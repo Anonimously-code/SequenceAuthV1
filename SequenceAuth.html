@@ -1,14 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Sequence Market AutoLogin</title>
-  <script src="https://cdn.jsdelivr.net/npm/@0xsequence/provider@latest/dist/sequence-provider.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@0xsequence/wallet@latest/dist/sequence-wallet.min.js"></script>
+  <script src="https://unpkg.com/@0xsequence/wallet/dist/index.umd.js"></script>
 </head>
 <body>
+  <button id="btnLogin">Conectar y Redirigir</button>
   <script>
-    // Reemplaza esto con los datos reales que generas desde Unity
     const intentPayload = {
       intent: {
         data: {
@@ -28,21 +27,23 @@
     }
 
     async function loginAndRedirect() {
-      const wallet = new sequence.Wallet("polygon", { defaultNetwork: "polygon" });
-      await wallet.connect({ app: "Your Game", authorize: true });
-      const address = await wallet.getAddress();
-
-      // Puedes hacer validación adicional del intent aquí si deseas
-      if (address.toLowerCase() === intentPayload.intent.data.wallet.toLowerCase()) {
-        // Redirige a tu market ya filtrado con wallet
-        const marketUrl = `https://courageous-polar-bear-35805.sequence.market/421614/${address}/items`;
-        window.location.href = marketUrl;
-      } else {
-        alert("La wallet conectada no coincide con el intent.");
+      try {
+        // sequence es global al usar el UMD bundle
+        const wallet = new sequence.Wallet("polygon", { defaultNetwork: "polygon" });
+        await wallet.connect({ app: "Your Game", authorize: true });
+        const address = await wallet.getAddress();
+        if (address.toLowerCase() === intentPayload.intent.data.wallet.toLowerCase()) {
+          const marketUrl = `https://courageous-polar-bear-35805.sequence.market/421614/${address}/items`;
+          window.location.href = marketUrl;
+        } else {
+          alert("La wallet conectada no coincide con el intent.");
+        }
+      } catch (error) {
+        console.error("Error al conectar wallet:", error);
       }
     }
 
-    loginAndRedirect();
+    document.getElementById("btnLogin").addEventListener("click", loginAndRedirect);
   </script>
 </body>
 </html>
