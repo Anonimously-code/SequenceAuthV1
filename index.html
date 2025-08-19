@@ -1,54 +1,26 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-  <title>Sequence AutoLogin</title>
-  <script src="https://cdn.jsdelivr.net/npm/ethers@6.10.0/dist/ethers.umd.min.js"></script>
+  <meta charset="UTF-8">
+  <title>Callback</title>
 </head>
 <body>
-  <h2>Validando sesión de Sequence...</h2>
-  <script>
-    async function main() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const encoded = urlParams.get('intent');
+<script>
+  // Captura el fragmento o parámetros de la URL (token o code)
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get("code");
+  const accessToken = params.get("access_token");
 
-      if (!encoded) {
-        document.body.innerHTML = '<h3>❌ No se encontró el intent.</h3>';
-        return;
-      }
+  if (code) {
+    // Si viene con "code" (OAuth normal)
+    window.opener.postMessage({ code }, "*");
+  } else if (accessToken) {
+    // Si viene con "access_token" (implícito)
+    window.opener.postMessage({ accessToken }, "*");
+  }
 
-      try {
-        const json = atob(encoded);
-        const intentWrapper = JSON.parse(json);
-        const intent = intentWrapper.intent;
-
-        const sig = intent.signatures[0];
-        const message = JSON.stringify({
-          wallet: intent.wallet,
-          issuedAt: intent.issuedAt,
-          expiresAt: intent.expiresAt,
-          name: intent.name,
-          sessionId: sig.sessionId
-        });
-
-        const recovered = ethers.verifyMessage(message, sig.signature);
-        if (recovered.toLowerCase() === intent.wallet.toLowerCase()) {
-          localStorage.setItem('wallet', intent.wallet);
-          document.body.innerHTML = '<h3>✅ Sesión verificada. Redirigiendo...</h3>';
-          setTimeout(() => {
-            const chain = "421614"; // Polygon Amoy
-            const collection = "0xa6a81b9c2e36dc28d0f34f433f69f497dcaef433";
-            window.location.href = `https://courageous-polar-bear-35805.sequence.market/${chain}/${collection}/items?wallet=${intent.wallet}`;
-          }, 1000);
-        } else {
-          document.body.innerHTML = '<h3>❌ Firma inválida.</h3>';
-        }
-      } catch (e) {
-        console.error(e);
-        document.body.innerHTML = '<h3>❌ Error procesando el intent.</h3>';
-      }
-    }
-
-    main();
-  </script>
+  // Cierra la ventana secundaria
+  window.close();
+</script>
 </body>
 </html>
